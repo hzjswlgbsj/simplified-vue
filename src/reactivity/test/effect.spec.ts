@@ -1,10 +1,11 @@
-import { reactive } from '../reactive';
+import { reactive } from '../reactive'
+import { effect } from '../effect'
 
 describe('effect', () => {
-  it.skip('happy path', () => {
+  it('happy path', () => {
     // 使用 reactive 将数据变成响应式
     const user = reactive({
-      age: 10
+      age: 10,
     })
 
     let nextAge
@@ -19,5 +20,5 @@ describe('effect', () => {
     // 触发更新
     user.age++
     expect(nextAge).toBe(12)
-  });
-});
+  })
+})
