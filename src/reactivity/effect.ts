@@ -3,11 +3,11 @@ class ReactiveEffect {
 
   constructor(fn) {
     this._fn = fn
-    activeEffect = this
   }
 
   run() {
-    this._fn()
+    activeEffect = this
+    return this._fn()
   }
 }
 
@@ -56,4 +56,6 @@ export function effect(fn) {
   // fn
   const _effect = new ReactiveEffect(fn)
   _effect.run()
+
+  return _effect.run.bind(_effect)
 }
