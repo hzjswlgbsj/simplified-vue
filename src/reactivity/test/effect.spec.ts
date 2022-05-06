@@ -80,6 +80,11 @@ describe('effect', () => {
     expect(dummy).toBe(2)
     stop(runner)
     obj.prop = 3
+    // 下面这种方式的话单元测试无法通过，原因是obj.prop++
+    // 相当于obj.prop = obj.prop + 1，这个动作会同时触发get和set，
+    // 我们stop操作是在set的时候被清理的，但是执行get的时候又会track，
+    // 然后set的时候又会执行新的effect副作用
+    // obj.prop++
     expect(dummy).toBe(2)
 
     // stopped effect should still be manually callable
