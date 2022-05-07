@@ -1,5 +1,6 @@
 import { track, trigger } from './effect'
-import { ReactiveFlags } from './reactive'
+import { reactive, ReactiveFlags, readonly } from './reactive'
+import { isObject } from '../shared'
 
 const get = createGetter()
 const set = createSetter()
@@ -15,6 +16,10 @@ function createGetter(isReadonly: boolean = false) {
 
     const res = Reflect.get(target, key)
 
+    // 如果 res 依然是 引用类型的话，我们需要让它也是响应式的
+    if (isObject(res)) {
+      return isReadonly ? readonly(res) : reactive(res)
+    }
     if (!isReadonly) {
       // TODO 依赖收集
       track(target, key)

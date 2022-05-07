@@ -14,6 +14,7 @@ export interface ReactiveEffectRunner<T = any> {
 
 export let activeEffect: ReactiveEffect | undefined // 保存当前正在被触发处理的副作用实例，执行run的时候被激活保存
 export const targetMap = new Map()
+export let shouldTrack: boolean
 
 class ReactiveEffect<T = any> {
   private _fn: any
@@ -29,8 +30,16 @@ class ReactiveEffect<T = any> {
   }
 
   run() {
+    if (!this.active) {
+      return this._fn()
+    }
+
     activeEffect = this
-    return this._fn()
+    shouldTrack = true
+
+    const result = this._fn()
+    shouldTrack = false // reset
+    return result
   }
 
   stop() {
@@ -60,6 +69,10 @@ function cleanupEffect(effect: ReactiveEffect) {
   }
 }
 
+function isTracking() {
+  return shouldTrack && typeof activeEffect !== 'undefined'
+}
+
 /**
  * 收集依赖
  * 1.我们需要一个容器（Dep）来收集依赖副作用（activeEffect）
@@ -71,6 +84,10 @@ export function track(target: any, key: string | symbol) {
   // Q: dep 我们应该存在哪里呢？
   // A: 首先数据流映射关系是 target ->（依对应） key ->（对应） dep，所以我们需要 Map 数据结构
   //    又因为这个track函数依赖过程是复用且频繁的，我们不需要重复申请Map结构，所以我们定义再函数外targetMap
+  if (!isTracking()) {
+    return
+  }
+
   let depsMap = targetMap.get(target) // 通过target获取到deps
   if (!depsMap) {
     depsMap = new Map()
@@ -83,7 +100,8 @@ export function track(target: any, key: string | symbol) {
     depsMap.set(key, dep)
   }
 
-  if (!activeEffect) {
+  // 如果当前的effect已经在dep中了就不需要再添加了
+  if (dep.has(activeEffect)) {
     return
   }
 

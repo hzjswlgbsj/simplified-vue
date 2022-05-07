@@ -10,7 +10,7 @@ describe('effect', () => {
 
     let nextAge
 
-    // 使用 effect 来收集依赖副作用
+    // 使用 effect 来记录一个「副作用」，当这个副作用 依赖 的被reactive的某个值改变的时候该副作用会被调用
     effect(() => {
       nextAge = user.age + 1
     })
@@ -79,12 +79,12 @@ describe('effect', () => {
     obj.prop = 2
     expect(dummy).toBe(2)
     stop(runner)
-    obj.prop = 3
+    // obj.prop = 3
     // 下面这种方式的话单元测试无法通过，原因是obj.prop++
     // 相当于obj.prop = obj.prop + 1，这个动作会同时触发get和set，
     // 我们stop操作是在set的时候被清理的，但是执行get的时候又会track，
     // 然后set的时候又会执行新的effect副作用
-    // obj.prop++
+    obj.prop++
     expect(dummy).toBe(2)
 
     // stopped effect should still be manually callable
