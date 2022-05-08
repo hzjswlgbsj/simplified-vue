@@ -1,5 +1,5 @@
 import { effect } from '../effect'
-import { ref, isRef, unref } from '../ref'
+import { ref, isRef, unRef, proxyRefs } from '../ref'
 
 describe('ref', () => {
   it('should hold a value', () => {
@@ -52,8 +52,8 @@ describe('ref', () => {
   })
 
   test('unref', () => {
-    expect(unref(1)).toBe(1)
-    expect(unref(ref(1))).toBe(1)
+    expect(unRef(1)).toBe(1)
+    expect(unRef(ref(1))).toBe(1)
   })
 
   it.skip('should work without initial value', () => {
@@ -65,6 +65,26 @@ describe('ref', () => {
     expect(dummy).toBe(undefined)
     a.value = 2
     expect(dummy).toBe(2)
+  })
+
+  it('proxyRefs', () => {
+    const user = {
+      age: ref(10),
+      name: 'sixty',
+    }
+
+    const proxyUser = proxyRefs(user)
+    expect(user.age.value).toBe(10)
+    expect(proxyUser.age).toBe(10)
+    expect(proxyUser.name).toBe('sixty')
+
+    proxyUser.age = 20
+    expect(proxyUser.age).toBe(20)
+    expect(user.age.value).toBe(20)
+
+    proxyUser.age = ref(10)
+    expect(proxyUser.age).toBe(10)
+    expect(user.age.value).toBe(10)
   })
 
   it.skip('should work like a normal property when nested in a reactive object', () => {

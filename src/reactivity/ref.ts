@@ -50,6 +50,33 @@ export function isRef(ref: RefImpl | any) {
   return !!ref.__v_isRef
 }
 
-export function unref(ref: RefImpl | any) {
+/**
+ * 实现Ref与普通对象取值无差异化
+ * @param ref RefImpl对象或者普通对象
+ * @returns
+ */
+export function unRef(ref: RefImpl | any) {
   return isRef(ref) ? ref.value : ref
+}
+
+/**
+ * 代理ref取值，使得ref对象不需要每次访问属性都需要「.value」
+ * @param raw 被代理对象
+ */
+export function proxyRefs(objectWithRefs: any) {
+  return new Proxy(objectWithRefs, {
+    get(target, key) {
+      // get -> age(ref) 就返回.value
+      // get -> age(not ref) 就返回 age
+      return unRef(Reflect.get(target, key))
+    },
+
+    set(target, key, value) {
+      if (isRef(target[key]) && !isRef(value)) {
+        return (target[key].value = value)
+      } else {
+        return Reflect.set(target, key, value)
+      }
+    },
+  })
 }
