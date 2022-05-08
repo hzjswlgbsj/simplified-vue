@@ -16,8 +16,8 @@ export let activeEffect: ReactiveEffect | undefined // 保存当前正在被触�
 export const targetMap = new Map()
 export let shouldTrack: boolean
 
-class ReactiveEffect<T = any> {
-  private _fn: any
+export class ReactiveEffect<T = any> {
+  private _fn: () => T
   onStop?: () => void
   deps: any[] = []
   active = true
@@ -138,8 +138,10 @@ export function triggerEffects(dep: Set<any>) {
  */
 export function trigger(target: any, key: string | symbol) {
   let depsMap = targetMap.get(target) // 先取到目标对象的deps的集合
-  let dep = depsMap.get(key)
-  triggerEffects(dep)
+  if (depsMap) {
+    let dep = depsMap.get(key)
+    triggerEffects(dep)
+  }
 }
 
 export function effect<T = any>(fn: () => T, options?: ReactiveEffectOptions) {
