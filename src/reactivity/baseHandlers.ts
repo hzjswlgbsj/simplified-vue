@@ -1,12 +1,16 @@
 import { track, trigger } from './effect'
 import { reactive, ReactiveFlags, readonly } from './reactive'
-import { isObject } from '../shared'
+import { isObject, extend } from '../shared'
 
 const get = createGetter()
 const set = createSetter()
 const readonlyGet = createGetter(true)
+const shallowReadonlyGet = createGetter(true, true)
 
-function createGetter(isReadonly: boolean = false) {
+function createGetter(
+  isReadonly: boolean = false,
+  isShallowReadonly: boolean = false
+) {
   return function get(target: any, key: string) {
     if (key === ReactiveFlags.IS_REACTIVE) {
       return !isReadonly
@@ -16,10 +20,16 @@ function createGetter(isReadonly: boolean = false) {
 
     const res = Reflect.get(target, key)
 
+    // 如果是isShallowReadonly
+    if (isShallowReadonly) {
+      return res
+    }
+
     // 如果 res 依然是 引用类型的话，我们需要让它也是响应式的
     if (isObject(res)) {
       return isReadonly ? readonly(res) : reactive(res)
     }
+
     if (!isReadonly) {
       // TODO 依赖收集
       track(target, key)
@@ -56,3 +66,7 @@ export const readonlyHandlers = {
     return true
   },
 }
+
+export const shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+  get: shallowReadonlyGet,
+})
