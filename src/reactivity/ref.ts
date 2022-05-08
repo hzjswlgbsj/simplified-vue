@@ -46,6 +46,10 @@ export function ref(value: any) {
   return new RefImpl(value)
 }
 
-export function isRef(ref: RefImpl) {
+export function isRef(ref: RefImpl | any) {
   return !!ref.__v_isRef
+}
+
+export function unref(ref: RefImpl | any) {
+  return isRef(ref) ? ref.value : ref
 }
