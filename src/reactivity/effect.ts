@@ -56,6 +56,20 @@ class ReactiveEffect<T = any> {
 }
 
 /**
+ * 将activeEffect收集到dep中
+ * @param dep 收集effect是容器是个Set结构
+ */
+export function trackEffects(dep: Set<any>) {
+  // 如果当前的effect已经在dep中了就不需要再添加了
+  if (dep.has(activeEffect)) {
+    return
+  }
+
+  dep.add(activeEffect)
+  activeEffect!.deps.push(dep)
+}
+
+/**
  * 从dep中删除不需要跟踪的副作用
  * @param effect ReactiveEffect 实例
  */
@@ -69,7 +83,7 @@ function cleanupEffect(effect: ReactiveEffect) {
   }
 }
 
-function isTracking() {
+export function isTracking() {
   return shouldTrack && typeof activeEffect !== 'undefined'
 }
 
@@ -100,13 +114,21 @@ export function track(target: any, key: string | symbol) {
     depsMap.set(key, dep)
   }
 
-  // 如果当前的effect已经在dep中了就不需要再添加了
-  if (dep.has(activeEffect)) {
-    return
-  }
+  trackEffects(dep) // 将activeEffect收集到dep中
+}
 
-  dep.add(activeEffect)
-  activeEffect!.deps.push(dep)
+/**
+ * 触发dep中的一系列副作用
+ * @param dep 保存的effect集合
+ */
+export function triggerEffects(dep: Set<any>) {
+  for (const effect of dep) {
+    if (effect.scheduler) {
+      effect.scheduler()
+    } else {
+      effect.run()
+    }
+  }
 }
 
 /**
@@ -116,14 +138,8 @@ export function track(target: any, key: string | symbol) {
  */
 export function trigger(target: any, key: string | symbol) {
   let depsMap = targetMap.get(target) // 先取到目标对象的deps的集合
-  let deps = depsMap.get(key)
-  for (const effect of deps) {
-    if (effect.scheduler) {
-      effect.scheduler()
-    } else {
-      effect.run()
-    }
-  }
+  let dep = depsMap.get(key)
+  triggerEffects(dep)
 }
 
 export function effect<T = any>(fn: () => T, options?: ReactiveEffectOptions) {
