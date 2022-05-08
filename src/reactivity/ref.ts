@@ -6,6 +6,7 @@ class RefImpl {
   private _value: any
   private _rawValue: any
   public dep: Set<any>
+  public __v_isRef: boolean = true
 
   constructor(value: any) {
     this._rawValue = value // 保存一个没有处理过的value
@@ -43,4 +44,8 @@ function trackRefValue(ref: RefImpl) {
 
 export function ref(value: any) {
   return new RefImpl(value)
+}
+
+export function isRef(ref: RefImpl) {
+  return !!ref.__v_isRef
 }
