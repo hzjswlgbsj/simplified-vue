@@ -56,80 +56,80 @@ describe('ref', () => {
     expect(unRef(ref(1))).toBe(1)
   })
 
-  it.skip('should work without initial value', () => {
-    const a = ref()
-    let dummy
-    effect(() => {
-      dummy = a.value
-    })
-    expect(dummy).toBe(undefined)
-    a.value = 2
-    expect(dummy).toBe(2)
-  })
+  // it.skip('should work without initial value', () => {
+  //   const a = ref()
+  //   let dummy
+  //   effect(() => {
+  //     dummy = a.value
+  //   })
+  //   expect(dummy).toBe(undefined)
+  //   a.value = 2
+  //   expect(dummy).toBe(2)
+  // })
 
-  it('proxyRefs', () => {
-    const user = {
-      age: ref(10),
-      name: 'sixty',
-    }
+  // it('proxyRefs', () => {
+  //   const user = {
+  //     age: ref(10),
+  //     name: 'sixty',
+  //   }
 
-    const proxyUser = proxyRefs(user)
-    expect(user.age.value).toBe(10)
-    expect(proxyUser.age).toBe(10)
-    expect(proxyUser.name).toBe('sixty')
+  //   const proxyUser = proxyRefs(user)
+  //   expect(user.age.value).toBe(10)
+  //   expect(proxyUser.age).toBe(10)
+  //   expect(proxyUser.name).toBe('sixty')
 
-    proxyUser.age = 20
-    expect(proxyUser.age).toBe(20)
-    expect(user.age.value).toBe(20)
+  //   proxyUser.age = 20
+  //   expect(proxyUser.age).toBe(20)
+  //   expect(user.age.value).toBe(20)
 
-    proxyUser.age = ref(10)
-    expect(proxyUser.age).toBe(10)
-    expect(user.age.value).toBe(10)
-  })
+  //   proxyUser.age = ref(10)
+  //   expect(proxyUser.age).toBe(10)
+  //   expect(user.age.value).toBe(10)
+  // })
 
-  it.skip('should work like a normal property when nested in a reactive object', () => {
-    const a = ref(1)
-    const obj = reactive({
-      a,
-      b: {
-        c: a,
-      },
-    })
+  // it.skip('should work like a normal property when nested in a reactive object', () => {
+  //   const a = ref(1)
+  //   const obj = reactive({
+  //     a,
+  //     b: {
+  //       c: a,
+  //     },
+  //   })
 
-    let dummy1: number
-    let dummy2: number
+  //   let dummy1: number
+  //   let dummy2: number
 
-    effect(() => {
-      dummy1 = obj.a
-      dummy2 = obj.b.c
-    })
+  //   effect(() => {
+  //     dummy1 = obj.a
+  //     dummy2 = obj.b.c
+  //   })
 
-    const assertDummiesEqualTo = (val: number) =>
-      [dummy1, dummy2].forEach((dummy) => expect(dummy).toBe(val))
+  //   const assertDummiesEqualTo = (val: number) =>
+  //     [dummy1, dummy2].forEach((dummy) => expect(dummy).toBe(val))
 
-    assertDummiesEqualTo(1)
-    a.value++
-    assertDummiesEqualTo(2)
-    obj.a++
-    assertDummiesEqualTo(3)
-    obj.b.c++
-    assertDummiesEqualTo(4)
-  })
+  //   assertDummiesEqualTo(1)
+  //   a.value++
+  //   assertDummiesEqualTo(2)
+  //   obj.a++
+  //   assertDummiesEqualTo(3)
+  //   obj.b.c++
+  //   assertDummiesEqualTo(4)
+  // })
 
-  it.skip('should unwrap nested ref in types', () => {
-    const a = ref(0)
-    const b = ref(a)
+  // it.skip('should unwrap nested ref in types', () => {
+  //   const a = ref(0)
+  //   const b = ref(a)
 
-    expect(typeof (b.value + 1)).toBe('number')
-  })
+  //   expect(typeof (b.value + 1)).toBe('number')
+  // })
 
-  it.skip('should unwrap nested values in types', () => {
-    const a = {
-      b: ref(0),
-    }
+  // it.skip('should unwrap nested values in types', () => {
+  //   const a = {
+  //     b: ref(0),
+  //   }
 
-    const c = ref(a)
+  //   const c = ref(a)
 
-    expect(typeof (c.value.b + 1)).toBe('number')
-  })
+  //   expect(typeof (c.value.b + 1)).toBe('number')
+  // })
 })

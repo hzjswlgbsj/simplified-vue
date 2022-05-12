@@ -1,20 +1,24 @@
 {
   "name": "simplified-vue",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "lib/mini-vue.cjs.js",
+  "module": "lib/mini-vue.esm.js",
   "repository": "https://github.com/hzjswlgbsj/simplified-vue.git",
   "author": "Sixty <hiliulin@aliyun.com>",
   "license": "MIT",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "rollup -c rollup.config.js"
   },
   "devDependencies": {
     "@babel/core": "^7.17.10",
     "@babel/preset-env": "^7.17.10",
     "@babel/preset-typescript": "^7.16.7",
+    "@rollup/plugin-typescript": "^8.3.2",
     "@types/jest": "^27.5.0",
     "babel-jest": "^28.0.3",
     "jest": "^28.0.3",
+    "tslib": "^2.4.0",
     "typescript": "^4.6.4"
   }
 }

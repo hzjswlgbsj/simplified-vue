@@ -42,7 +42,7 @@ function trackRefValue(ref: RefImpl) {
   }
 }
 
-export function ref(value: any) {
+export function ref(value?: any) {
   return new RefImpl(value)
 }
 

@@ -1,3 +1,5 @@
+import { h } from '../../lib/mini-vue.esm'
+
 export const App = {
   render() {
     return h('div', this.msg)
