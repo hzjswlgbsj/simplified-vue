@@ -60,8 +60,17 @@ function mountElement(vnode: any, container: any) {
   // 处理元素的属性 props
   for (const key in props) {
     const val = props[key]
-    el.setAttribute(key, val)
+
+    // 处理事件注册
+    const isOn = (key: string) => /^on[A-Z]/.test(key)
+    if (isOn(key)) {
+      const event = key.slice(2).toLocaleLowerCase()
+      el.addEventListener(event, val)
+    } else {
+      el.setAttribute(key, val)
+    }
   }
+
   container.appendChild(el)
 }
 

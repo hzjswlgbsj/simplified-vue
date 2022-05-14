@@ -10,6 +10,12 @@ export default {
       {
         id: 'root',
         class: ['red', 'hard'],
+        onClick() {
+          console.log('click')
+        },
+        onMousedown() {
+          console.log('onMousedown')
+        },
       },
       this.msg
       // [h('p', { class: 'red' }, 'hi'), h('p', { class: 'blue' }, 'mini vue')]
