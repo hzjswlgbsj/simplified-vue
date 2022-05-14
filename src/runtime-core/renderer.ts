@@ -1,4 +1,5 @@
 import { isObject } from '../shared'
+import { ShapeFlags } from '../shared/shapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 
 export function render(vnode: any, container: any) {
@@ -7,12 +8,12 @@ export function render(vnode: any, container: any) {
 }
 
 export function patch(vnode: any, container: any) {
-  // TODO 判断VNode是不是element
-  // 思考：如何区分是element还是component
-  if (typeof vnode.type === 'string') {
+  const { shapeFlag } = vnode // 拿到状态flag
+  // 判断vnode是不是element
+  if (shapeFlag & ShapeFlags.ELEMENT) {
     // 处理element
     processElement(vnode, container)
-  } else if (isObject(vnode.type)) {
+  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     // 处理组件
     processComponent(vnode, container)
   }
@@ -45,13 +46,14 @@ function mountElement(vnode: any, container: any) {
   // 注意：这里的vnode是element类型
   // 创建element
   const el = (vnode.el = document.createElement(vnode.type))
-  const { children, props } = vnode
+  const { children, props, shapeFlag } = vnode
 
   // 处理children， children也分为 string和数组
   // 如果是string的话就直接是文本节点
-  if (typeof vnode.children === 'string') {
+  if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children
-  } else if (Array.isArray(vnode.children)) {
+  } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+    // 如果是数组的话挂载children
     mountChildren(vnode, el)
   }
 

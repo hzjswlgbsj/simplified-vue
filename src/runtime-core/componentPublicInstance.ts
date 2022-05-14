@@ -2,7 +2,7 @@ const publicPropertiesMap: { [key: string]: any } = {
   $el: (instance: any) => instance.vnode.el,
 }
 
-export const PublicInstanceProxyHandle = {
+export const PublicInstanceProxyHandlers = {
   get({ _: instance }: any, key: string) {
     // 处理 setupState
     const { setupState } = instance

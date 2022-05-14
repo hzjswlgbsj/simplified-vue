@@ -1,4 +1,4 @@
-import { PublicInstanceProxyHandle } from './componentPublicInstance'
+import { PublicInstanceProxyHandlers } from './componentPublicInstance'
 
 export function createComponentInstance(vnode: any) {
   const component = {
@@ -29,13 +29,13 @@ function setupStatefulComponent(instance: any) {
   const Component = instance.type // 拿到组件options
 
   // 代理对象，使得实例中可以直接通过this.xxx访问到setup中，$data。。。中的变量
-  // 不需要再写this.data.xxxx -> this.xxx
-  instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandle)
+  // 不需要再写this.data.xxxx -> this.xxxx
+  instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers)
 
   const { setup } = Component
 
   if (setup) {
-    // 调用setup 得到xx ，可能是function和object
+    // 调用setup 得到vue3的setup执行后返回的状态对象 ，可能是function和object
     const setupResult = setup()
 
     handleSetupResult(instance, setupResult)
