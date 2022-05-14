@@ -3,6 +3,7 @@ export function createVNode(type: any, props?: any, children?: any[]) {
     type,
     props,
     children: children,
+    el: null,
   }
 
   return vnode

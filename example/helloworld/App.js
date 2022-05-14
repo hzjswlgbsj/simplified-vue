@@ -1,15 +1,18 @@
 import { h } from '../../lib/mini-vue.esm.js'
 
+window.self = null
 export default {
   name: 'App',
   render() {
+    window.self = this
     return h(
       'div',
       {
         id: 'root',
         class: ['red', 'hard'],
       },
-      [h('p', { class: 'red' }, 'hi'), h('p', { class: 'blue' }, 'mini vue')]
+      this.msg
+      // [h('p', { class: 'red' }, 'hi'), h('p', { class: 'blue' }, 'mini vue')]
     )
   },
 

@@ -30,18 +30,21 @@ export function processComponent(vnode: any, container: any) {
   mountComponent(vnode, container)
 }
 
-function mountComponent(vnode: any, container: any) {
-  const instance = createComponentInstance(vnode)
+function mountComponent(initialVNode: any, container: any) {
+  // 首先创建一个组件实例
+  const instance = createComponentInstance(initialVNode)
 
-  // setupComponent
+  // 然后去构建实例中必须的数据
   setupComponent(instance)
 
-  setupRenderEffect(instance, container)
+  // 递归渲染组件实例
+  setupRenderEffect(instance, initialVNode, container)
 }
 
 function mountElement(vnode: any, container: any) {
+  // 注意：这里的vnode是element类型
   // 创建element
-  const el = document.createElement(vnode.type)
+  const el = (vnode.el = document.createElement(vnode.type))
   const { children, props } = vnode
 
   // 处理children， children也分为 string和数组
@@ -60,12 +63,16 @@ function mountElement(vnode: any, container: any) {
   container.appendChild(el)
 }
 
-function setupRenderEffect(instance: any, container: any) {
-  const subTree = instance.render()
+function setupRenderEffect(instance: any, initialVNode: any, container: any) {
+  const { proxy } = instance
+  const subTree = instance.render.call(proxy)
 
   // vnode -> patch
   // vnode -> element -> mountElement
   patch(subTree, container)
+
+  // 这里所有的element都被mount了
+  initialVNode.el = subTree.el
 }
 function mountChildren(vnode: any, container: HTMLElement) {
   vnode.children.forEach((v: any) => {

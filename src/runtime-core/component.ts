@@ -1,12 +1,19 @@
+import { PublicInstanceProxyHandle } from './componentPublicInstance'
+
 export function createComponentInstance(vnode: any) {
   const component = {
     vnode,
     type: vnode.type,
+    setupState: {},
   }
 
   return component
 }
 
+/**
+ * 初始化组件实例，准备组件必须的数据
+ * @param instance 组件实例
+ */
 export function setupComponent(instance: any) {
   // initProps // 初始化props
 
@@ -14,8 +21,16 @@ export function setupComponent(instance: any) {
   setupStatefulComponent(instance) // 初始化有状态的组件
 }
 
+/**
+ * 初始化组件中的各种状态
+ * @param instance 组件实例
+ */
 function setupStatefulComponent(instance: any) {
   const Component = instance.type // 拿到组件options
+
+  // 代理对象，使得实例中可以直接通过this.xxx访问到setup中，$data。。。中的变量
+  // 不需要再写this.data.xxxx -> this.xxx
+  instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandle)
 
   const { setup } = Component
 
@@ -45,6 +60,10 @@ function handleSetupResult(instance: any, setupResult: any) {
   finishComponentSetup(instance)
 }
 
+/**
+ * 保证组件实例中包含render函数
+ * @param instance 组件实例
+ */
 function finishComponentSetup(instance: any) {
   const Component = instance.type
 
