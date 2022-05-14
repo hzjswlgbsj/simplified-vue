@@ -1,3 +1,5 @@
+import { shallowReadonly } from '../reactivity/reactive'
+import { initProps } from './componentProps'
 import { PublicInstanceProxyHandlers } from './componentPublicInstance'
 
 export function createComponentInstance(vnode: any) {
@@ -15,9 +17,9 @@ export function createComponentInstance(vnode: any) {
  * @param instance 组件实例
  */
 export function setupComponent(instance: any) {
-  // initProps // 初始化props
-
-  // initSlots // 初始化slots
+  // 初始化props
+  initProps(instance, instance.vnode.props)
+  // TODO initSlots // 初始化slots
   setupStatefulComponent(instance) // 初始化有状态的组件
 }
 
@@ -36,7 +38,7 @@ function setupStatefulComponent(instance: any) {
 
   if (setup) {
     // 调用setup 得到vue3的setup执行后返回的状态对象 ，可能是function和object
-    const setupResult = setup()
+    const setupResult = setup(shallowReadonly(instance.props))
 
     handleSetupResult(instance, setupResult)
   }

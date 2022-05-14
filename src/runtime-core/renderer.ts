@@ -1,4 +1,4 @@
-import { isObject } from '../shared'
+import { isObject, isOn } from '../shared'
 import { ShapeFlags } from '../shared/shapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 
@@ -62,7 +62,6 @@ function mountElement(vnode: any, container: any) {
     const val = props[key]
 
     // 处理事件注册
-    const isOn = (key: string) => /^on[A-Z]/.test(key)
     if (isOn(key)) {
       const event = key.slice(2).toLocaleLowerCase()
       el.addEventListener(event, val)

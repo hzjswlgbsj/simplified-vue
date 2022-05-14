@@ -8,6 +8,7 @@ node_modules
 .vscode/
 /tests/e2e/videos/
 /tests/e2e/screenshots/
+/lib
 
 # local env files
 .env.local
