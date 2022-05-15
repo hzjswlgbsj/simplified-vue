@@ -4,10 +4,11 @@
 
 // 用枚举 + 位运算表示
 export const enum ShapeFlags {
-  ELEMENT = 1, // 0001
-  STATEFUL_COMPONENT = 1 << 1, // 0010，由0001的值1左移1位得到
-  TEXT_CHILDREN = 1 << 2, // 0100，由0001的值1左移2位得到
-  ARRAY_CHILDREN = 1 << 3, // 1000，由0001的值1左移3位得到
+  ELEMENT = 1, // 00001
+  STATEFUL_COMPONENT = 1 << 1, // 00010，由0001的值1左移1位得到
+  TEXT_CHILDREN = 1 << 2, // 00100，由0001的值1左移2位得到
+  ARRAY_CHILDREN = 1 << 3, // 01000，由0001的值1左移3位得到
+  SLOT_CHILDREN = 1 << 4, // 10000，由0001的值1左移4位得到
 }
 
 // 用对象来实现的话可读性好但是性能不行
