@@ -1,4 +1,5 @@
 import { shallowReadonly } from '../reactivity/reactive'
+import { emit } from './componentEmit'
 import { initProps } from './componentProps'
 import { PublicInstanceProxyHandlers } from './componentPublicInstance'
 
@@ -7,8 +8,11 @@ export function createComponentInstance(vnode: any) {
     vnode,
     type: vnode.type,
     setupState: {},
+    props: {},
+    emit: () => {},
   }
 
+  component.emit = emit.bind(null, component) as any
   return component
 }
 
@@ -38,7 +42,9 @@ function setupStatefulComponent(instance: any) {
 
   if (setup) {
     // 调用setup 得到vue3的setup执行后返回的状态对象 ，可能是function和object
-    const setupResult = setup(shallowReadonly(instance.props))
+    const setupResult = setup(shallowReadonly(instance.props), {
+      emit: instance.emit,
+    })
 
     handleSetupResult(instance, setupResult)
   }

@@ -9,3 +9,17 @@ export const hasOwn = (val: any, key: string) =>
 export const hasChanged = (val: any, newVal: any) => {
   return !Object.is(val, newVal)
 }
+
+export const camelize = (str: string) => {
+  return str.replace(/-(\w)/g, (_, c: string) => {
+    return c ? c.toLocaleUpperCase() : ''
+  })
+}
+
+export const capitalize = (str: string) => {
+  return str.charAt(0).toLocaleUpperCase() + str.slice(1)
+}
+
+export const toHandlerKey = (str: string) => {
+  return str ? 'on' + capitalize(str) : ''
+}
