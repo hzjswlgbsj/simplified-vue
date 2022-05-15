@@ -1,6 +1,7 @@
-import { isObject, isOn } from '../shared'
+import { isOn } from '../shared'
 import { ShapeFlags } from '../shared/shapeFlags'
 import { createComponentInstance, setupComponent } from './component'
+import { Fragment, Text } from './vnode'
 
 export function render(vnode: any, container: any) {
   // patch 派发更新
@@ -8,15 +9,39 @@ export function render(vnode: any, container: any) {
 }
 
 export function patch(vnode: any, container: any) {
-  const { shapeFlag } = vnode // 拿到状态flag
-  // 判断vnode是不是element
-  if (shapeFlag & ShapeFlags.ELEMENT) {
-    // 处理element
-    processElement(vnode, container)
-  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-    // 处理组件
-    processComponent(vnode, container)
+  const { shapeFlag, type } = vnode // 拿到状态flag
+
+  // Fragment -> 只渲染 children ，不增加一个div包裹
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container)
+      break
+    case Text:
+      processText(vnode, container)
+      break
+    default:
+      // 判断vnode是不是element
+      if (shapeFlag & ShapeFlags.ELEMENT) {
+        // 处理element
+        processElement(vnode, container)
+      } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        // 处理组件
+        processComponent(vnode, container)
+      }
+      break
   }
+}
+
+export function processText(vnode: any, container: any) {
+  // Text 类型
+  const { children } = vnode
+  const textNode = (vnode.el = document.createTextNode(children))
+  container.appendChild(textNode)
+}
+
+export function processFragment(vnode: any, container: any) {
+  // fragment 类型
+  mountChildren(vnode, container)
 }
 
 export function processElement(vnode: any, container: any) {
