@@ -4,6 +4,8 @@ import { initProps } from './componentProps'
 import { PublicInstanceProxyHandlers } from './componentPublicInstance'
 import { initSlots } from './componentSlots'
 
+let currentInstance: any = null
+
 export function createComponentInstance(vnode: any) {
   const component = {
     vnode,
@@ -46,11 +48,13 @@ function setupStatefulComponent(instance: any) {
   const { setup } = Component
 
   if (setup) {
+    setCurrentInstance(instance)
     // 调用setup 得到vue3的setup执行后返回的状态对象 ，可能是function和object
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit,
     })
 
+    setCurrentInstance(null)
     handleSetupResult(instance, setupResult)
   }
 }
@@ -83,4 +87,15 @@ function finishComponentSetup(instance: any) {
   if (Component.render) {
     instance.render = Component.render
   }
+}
+
+/**
+ * 获取当前组件实例
+ */
+export function getCurrentInstance() {
+  return currentInstance
+}
+
+export function setCurrentInstance(instance: any) {
+  currentInstance = instance
 }

@@ -10,7 +10,7 @@ export default {
       {},
       {
         header: ({ age }) => [
-          h('p', {}, 'heager' + age),
+          h('p', {}, 'header' + age),
           createTextVNode('你好啊'),
         ],
         footer: ({ age }) => h('p', {}, 'footer' + age),
