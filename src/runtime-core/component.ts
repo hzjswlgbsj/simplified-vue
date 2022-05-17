@@ -13,6 +13,7 @@ export function createComponentInstance(vnode: any) {
     setupState: {},
     props: {},
     slots: {},
+    provides: {},
     emit: () => {},
   }
 
