@@ -4,7 +4,11 @@ import { createAppAPI } from './createApp'
 import { Fragment, Text } from './vnode'
 
 export function createRenderer(options: any) {
-  const { createElement, patchProp, insert } = options
+  const {
+    createElement: hostCreateElement,
+    patchProp: hostPatchProp,
+    insert: hostInsert,
+  } = options
   function render(vnode: any, container: any) {
     // patch 派发更新
     patch(vnode, container, null)
@@ -74,7 +78,7 @@ export function createRenderer(options: any) {
 
   function mountElement(vnode: any, container: any, parentComponent: any) {
     // 注意：这里的vnode是element类型
-    const el = (vnode.el = createElement(vnode.type))
+    const el = (vnode.el = hostCreateElement(vnode.type))
     const { children, props, shapeFlag } = vnode
 
     // 处理children， children也分为 string和数组
@@ -89,10 +93,10 @@ export function createRenderer(options: any) {
     // 处理元素的属性 props
     for (const key in props) {
       const val = props[key]
-      patchProp(el, key, val)
+      hostPatchProp(el, key, val)
     }
 
-    insert(el, container)
+    hostInsert(el, container)
   }
 
   function setupRenderEffect(instance: any, initialVNode: any, container: any) {
