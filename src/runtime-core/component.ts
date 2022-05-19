@@ -13,7 +13,7 @@ export function createComponentInstance(vnode: any, parent: any) {
     setupState: {},
     props: {},
     slots: {},
-    provides: parent ? parent.provides : {},
+    provides: parent ? parent.provides : {}, // 指向父亲实例的provide便于取值
     parent,
     emit: () => {},
   }

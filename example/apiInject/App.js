@@ -1,3 +1,4 @@
+// 只能在setup中使用provide和inject，因为当前组件的实例是在组件setup的时候被赋值的
 import { h, provide, inject } from '../../lib/mini-vue.esm.js'
 
 const Provider = {
