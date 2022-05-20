@@ -57,7 +57,6 @@ export function createRenderer(options: any) {
 
   function processComponent(vnode: any, container: any, parentComponent: any) {
     // 挂载组件
-    // 判断是不是element
     mountComponent(vnode, container, parentComponent)
   }
 
