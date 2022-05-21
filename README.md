@@ -1,6 +1,6 @@
 ## 简介
 
-本仓库用于学习 **Vue3** 的设计，以及简单版本的实现，主要参考 《Vuejs 设计与实现》以及 [mini-vue](https://github.com/cuixiaorui/mini-vue)。
+本仓库仅用于学习 **Vue3** 的设计，以及简单版本的实现，主要参考 《Vuejs 设计与实现》以及 [mini-vue](https://github.com/cuixiaorui/mini-vue)
 
 代码中包含大量注释，只要涉及框架设计相关思想在 vue3 中有所涉及我都会详细注释在代码中，并且会一直更新代码中的注释。如果你想研究 vue3 源码又苦于代码复杂度太高不知道从何下手，你可以先看本仓库。
 
@@ -23,3 +23,7 @@
 关于本人，github 主页也有相关介绍和博客地址，虽说许久未更新，但并不代表我没有产出哦，目前写的文章都在 _语雀_ 我会陆续搬运。写博客最重要的作用是知识的总结和吸收，其次才是传播，如有问题可以加我我们一起成长。
 
 ## 参考
+
+1. [mini-vue](https://github.com/cuixiaorui/mini-vue)
+2. [vue 技术内幕](http://caibaojian.com/vue-design/art)
+3. [snabbdom](https://github.com/snabbdom/snabbdom/blob/master/README-zh_CN.md)
