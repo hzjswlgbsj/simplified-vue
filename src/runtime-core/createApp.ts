@@ -1,5 +1,10 @@
 import { createVNode } from './vnode'
 
+/**
+ * 在createApp 外层再包装一层使得创建一个App实例更灵活
+ * @param render 外部替自己提供的render函数
+ * @returns
+ */
 export function createAppAPI(render: any) {
   return function createApp(rootComponent: any) {
     return {

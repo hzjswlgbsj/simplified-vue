@@ -1,3 +1,23 @@
+//---------------------------createRenderer-------------------------------
+// 将节点的整个渲染过程在抽象一层，让各个平台都能有一套自己的渲染逻辑，比如：
+// 整个render过程其实就是递归vnode，最终都是要到mountElement，元素处理
+// 这一层，可以看到元素处理主要有三个部分：
+// 1.创建元素
+// 2.处理元素属性
+// 3.将元素挂到容器
+// 在DOM平台对应：
+// 1.document.createElement
+// 2.setAttribute、addEventListener...
+// 3.appendChild、insertBefore...
+
+// 那如果想渲染其他平台元素怎么处理呢？
+// 所以就有了现在这一层抽象，把上面提到的1, 2, 3点暴露接口给外部，只提供
+// createRenderer 来创建一个 render ，这样我们的框架就具备了自定义渲染
+// 流程的能力，当然这只是建的处理1,2,3正式情况可能会更加复杂，会有4,5，6...
+
+// 在example/customRenderer 中结合了 pixijs 示范创建一个canvas平台的
+// 自定义渲染流程
+
 import { ShapeFlags } from '../shared/shapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 import { createAppAPI } from './createApp'
