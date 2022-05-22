@@ -19,6 +19,7 @@
 // 自定义渲染流程
 
 import { effect } from '../reactivity'
+import { EMPTY_OBJ } from '../shared'
 import { ShapeFlags } from '../shared/shapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 import { createAppAPI } from './createApp'
@@ -157,14 +158,74 @@ export function createRenderer(options: any) {
     // 处理元素的属性 props
     for (const key in props) {
       const val = props[key]
-      hostPatchProp(el, key, val)
+      hostPatchProp(el, key, null, val)
     }
 
     hostInsert(el, container)
   }
 
+  /**
+   * 根据新旧虚拟节点来更新 element 的视图，这个过程比较复杂，这里会拆分问题:
+   * 更新props、
+   * @param n1 更新前的vnode
+   * @param n2 本次要更新的vnode
+   * @param container 根容器
+   */
   function patchElement(n1: any, n2: any, container: any) {
     console.log(TAG, 'patchElement', '开始执行DOM元素类型的更新操作', n1, n2)
+    /* 更新 props */
+    // 更新 props 主要有三种场景
+    // 1.之前的值和现在的值不一样了【修改操作】
+    // 2.值或者属性变成 null 或者 undefined【删除操作】
+    // 3.props 对象中的某个属性被删除【删除操作】
+    const oldProps = n1.props || EMPTY_OBJ
+    const newProps = n2.props || EMPTY_OBJ
+
+    // 想想 el 在哪里赋值的？在 mountElement 的时候不仅创建了el还将它赋值到了vnode上
+    // 同理 我们这里需要将更新前的el赋值给更新后的vnode上，确保下一次的更新 vnode上有el
+    const el = (n2.el = n1.el)
+    patchProps(el, oldProps, newProps)
+  }
+
+  /**
+   * 对比更新新旧 props
+   * @param el 第一次初始化的时候创建的el，在mountElement方法中被赋值并保存到vnode中
+   * @param oldProps 旧的 props
+   * @param newProps 新的 props
+   */
+  function patchProps(el: HTMLElement, oldProps: any, newProps: any) {
+    console.log(
+      TAG,
+      'patchProps',
+      '开始执行DOM元素类型的更新操作-处理属性',
+      el,
+      oldProps,
+      newProps
+    )
+
+    if (oldProps !== newProps) {
+      // 遍历新的props 修改需要修改的，如果有属性变成undefined或者null那么删除
+      for (const key in newProps) {
+        const prevProp = oldProps[key]
+        const nextProp = newProps[key]
+
+        // 更新
+        if (prevProp !== nextProp) {
+          // 使用接口中用户提供的props处理函数完成更新
+          hostPatchProp(el, key, prevProp, nextProp)
+        }
+      }
+
+      if (oldProps !== EMPTY_OBJ) {
+        // 遍历旧的props，检查在新的props中是否存在
+        for (const key in oldProps) {
+          // 如果不存在就删除
+          if (!(key in newProps)) {
+            hostPatchProp(el, key, oldProps[key], null)
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -207,7 +268,6 @@ export function createRenderer(options: any) {
         // 这里所有的element都被mount了
         initialVNode.el = subTree.el
 
-        // 处理 diff
         console.log(
           TAG,
           'setupRenderEffect',
@@ -216,11 +276,13 @@ export function createRenderer(options: any) {
           subTree
         )
       } else {
+        /* 更新流程 */
         const { proxy } = instance
         const subTree = instance.render.call(proxy) // 得到最新的 subTree
         const preSubTree = instance.subTree // 获取上一次的subTree
         instance.subTree = subTree // 更新最新的subTree
         patch(preSubTree, subTree, container, instance)
+
         console.log(
           TAG,
           'setupRenderEffect',
