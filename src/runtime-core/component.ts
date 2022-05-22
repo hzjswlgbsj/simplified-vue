@@ -1,3 +1,4 @@
+import { proxyRefs } from '../reactivity'
 import { shallowReadonly } from '../reactivity/reactive'
 import { emit } from './componentEmit'
 import { initProps } from './componentProps'
@@ -6,16 +7,24 @@ import { initSlots } from './componentSlots'
 
 let currentInstance: any = null
 
+/**
+ * 根据vnode来生成一个组件实例
+ * @param vnode 虚拟节点
+ * @param parent 父节点
+ * @returns 组件实例
+ */
 export function createComponentInstance(vnode: any, parent: any) {
   const component = {
     vnode,
     type: vnode.type,
-    setupState: {},
+    setupState: {}, // 保存setup方法中的变量，方法等等
     props: {},
     slots: {},
     provides: parent ? parent.provides : {}, // 指向父亲实例的provide便于取值
     parent,
     emit: () => {},
+    isMounted: false,
+    subTree: {},
   }
 
   component.emit = emit.bind(null, component) as any
@@ -66,13 +75,13 @@ function setupStatefulComponent(instance: any) {
  * @param setupResult Component的setup返回值
  */
 function handleSetupResult(instance: any, setupResult: any) {
-  // 如果是 function 的认为它就是组件的 render 函数，
+  // 如果是 function 的话认为它就是组件的 render 函数，
   // 如果是 object 的话，会把object注入到组件上下文中
   // TODO function
 
-  // object
+  // object，使用proxyRefs代理，使得在使用setup返回变量的时候不需要手动添加.value
   if (typeof setupResult === 'object') {
-    instance.setupState = setupResult
+    instance.setupState = proxyRefs(setupResult)
   }
 
   // 保证render一定有值
