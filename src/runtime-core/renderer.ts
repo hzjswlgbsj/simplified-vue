@@ -23,7 +23,7 @@ import { EMPTY_OBJ } from '../shared'
 import { ShapeFlags } from '../shared/shapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 import { createAppAPI } from './createApp'
-import { Fragment, Text } from './vnode'
+import { Fragment, Text, VNode } from './vnode'
 
 const TAG = 'src/runtime-core/renderer'
 
@@ -32,8 +32,10 @@ export function createRenderer(options: any) {
     createElement: hostCreateElement,
     patchProp: hostPatchProp,
     insert: hostInsert,
+    remove: hostRemove,
+    setElementText: hostSetElementText,
   } = options
-  function render(vnode: any, container: any) {
+  function render(vnode: VNode, container: any) {
     // patch 派发更新
     patch(null, vnode, container, null)
   }
@@ -45,7 +47,12 @@ export function createRenderer(options: any) {
    * @param container 根容器dom
    * @param parentComponent 父组件
    */
-  function patch(n1: any, n2: any, container: any, parentComponent: any) {
+  function patch(
+    n1: VNode | null,
+    n2: VNode,
+    container: any,
+    parentComponent: any
+  ) {
     const { shapeFlag, type } = n2 // 拿到状态flag
 
     // Fragment -> 只渲染 children ，不增加一个div包裹
@@ -69,7 +76,7 @@ export function createRenderer(options: any) {
     }
   }
 
-  function processText(n1: any, n2: any, container: any) {
+  function processText(n1: VNode | null, n2: VNode, container: any) {
     // Text 类型
     const { children } = n2
     const textNode = (n2.el = document.createTextNode(children))
@@ -77,18 +84,18 @@ export function createRenderer(options: any) {
   }
 
   function processFragment(
-    n1: any,
-    n2: any,
+    n1: VNode | null,
+    n2: VNode,
     container: any,
     parentComponent: any
   ) {
     // fragment 类型
-    mountChildren(n2, container, parentComponent)
+    mountChildren(n2.children, container, parentComponent)
   }
 
   function processElement(
-    n1: any,
-    n2: any,
+    n1: VNode | null,
+    n2: VNode,
     container: any,
     parentComponent: any
   ) {
@@ -97,13 +104,13 @@ export function createRenderer(options: any) {
       mountElement(n2, container, parentComponent)
     } else {
       // 更新
-      patchElement(n1, n2, container)
+      patchElement(n1, n2, container, parentComponent)
     }
   }
 
   function processComponent(
-    n1: any,
-    n2: any,
+    n1: VNode | null,
+    n2: VNode,
     container: any,
     parentComponent: any
   ) {
@@ -152,7 +159,7 @@ export function createRenderer(options: any) {
       el.textContent = children
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       // 如果是数组的话挂载children
-      mountChildren(vnode, el, parentComponent)
+      mountChildren(vnode.children, el, parentComponent)
     }
 
     // 处理元素的属性 props
@@ -171,24 +178,33 @@ export function createRenderer(options: any) {
    * @param n2 本次要更新的vnode
    * @param container 根容器
    */
-  function patchElement(n1: any, n2: any, container: any) {
+  function patchElement(
+    n1: VNode,
+    n2: VNode,
+    container: any,
+    parentComponent: any
+  ) {
     console.log(TAG, 'patchElement', '开始执行DOM元素类型的更新操作', n1, n2)
+
     /* 更新 props */
-    // 更新 props 主要有三种场景
-    // 1.之前的值和现在的值不一样了【修改操作】
-    // 2.值或者属性变成 null 或者 undefined【删除操作】
-    // 3.props 对象中的某个属性被删除【删除操作】
     const oldProps = n1.props || EMPTY_OBJ
     const newProps = n2.props || EMPTY_OBJ
-
     // 想想 el 在哪里赋值的？在 mountElement 的时候不仅创建了el还将它赋值到了vnode上
     // 同理 我们这里需要将更新前的el赋值给更新后的vnode上，确保下一次的更新 vnode上有el
     const el = (n2.el = n1.el)
+
     patchProps(el, oldProps, newProps)
+
+    /* 更新 children */
+    patchChildren(n1, n2, el, parentComponent)
   }
 
   /**
    * 对比更新新旧 props
+   * 更新 props 主要有三种场景
+   * 1.之前的值和现在的值不一样了【修改操作】
+   * 2.值或者属性变成 null 或者 undefined【删除操作】
+   * 3.props 对象中的某个属性被删除【删除操作】
    * @param el 第一次初始化的时候创建的el，在mountElement方法中被赋值并保存到vnode中
    * @param oldProps 旧的 props
    * @param newProps 新的 props
@@ -225,6 +241,95 @@ export function createRenderer(options: any) {
           }
         }
       }
+    }
+  }
+
+  /**
+   * 根据新老虚拟节点更新 children
+   * 这里我们需要对比新老节点的情况，一共有4中情况
+   * case1： 老的节点是 array 新的节点是 text
+   * case2： 老的节点是 text 新的节点是 text
+   * case3： 老的节点是 text 新的节点是 array
+   * case4： 老的节点是 array 新的节点是 array
+   * @param n1 旧（上一次）的 vnode
+   * @param n2 新（本次）的 vnode
+   * @param container 父级容器element节点
+   */
+  function patchChildren(
+    n1: VNode,
+    n2: VNode,
+    container: HTMLElement,
+    parentComponent: any
+  ) {
+    const prevShapeFlag = n1.shapeFlag
+    const nextShapeFlag = n2.shapeFlag
+    const newChildren = n2.children
+
+    // 注意：case1 和 case2 两种情况代码可以合并，但是未来可读性合并的代码注释在下面了
+
+    // case1：如果新的节点是一个文本节点，并且老的节点是一个 array
+    if (nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 1.将原来的 children 完全清空
+        unmountChildren(n1.children)
+
+        // 2.在其位置上插入新的文本节点
+        hostSetElementText(container, newChildren)
+      }
+    }
+
+    // case2：如果新的节点是一个文本节点，并且老的节点也是一个文本节点
+    if (nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // 直接替换即可
+        hostSetElementText(container, newChildren)
+      }
+    }
+
+    // case3：如果新的节点是一个array节点，老的节点是一个文本节点
+    if (nextShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // 1.将原来的 text 完全清空
+        hostSetElementText(container, '')
+
+        // 2.挂载 children
+        mountChildren(n2.children, container, parentComponent)
+      }
+    }
+
+    // case4：如果新的节点是一个array节点，老的节点也是一个array
+    // 这种情况比较复杂了，需要diff array
+    if (nextShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      }
+    }
+
+    /* case1 和 case2 合并后的代码 */
+    // if (nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+    //   if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+    //     unmountChildren(n1.children)
+    //   }
+
+    //   if (n1.children !== n2.children) {
+    //     hostSetElementText(container, newChildren)
+    //   }
+    // } else {
+    //   if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+    //     hostSetElementText(container, '')
+    //     mountChildren(n2.children, container, parentComponent)
+    //   }
+    // }
+  }
+
+  /**
+   * 将子节点从当前节点移除
+   * @param children 子节点
+   */
+  function unmountChildren(children: any[]) {
+    for (let i = 0; i < children.length; i++) {
+      const el = children[i].el
+      // remove
+      hostRemove(el)
     }
   }
 
@@ -296,11 +401,11 @@ export function createRenderer(options: any) {
   }
 
   function mountChildren(
-    vnode: any,
+    children: any,
     container: HTMLElement,
     parentComponent: any
   ) {
-    vnode.children.forEach((v: any) => {
+    children.forEach((v: any) => {
       patch(null, v, container, parentComponent)
     })
   }

@@ -1,9 +1,13 @@
+//---------------------------DOM API-----------------------------
+// 对 DOM API的一些封装实现 以提供给render -> patch 流程做视图初始化和更新
+
 import { createRenderer } from '../runtime-core'
 import { isOn } from '../shared'
 
 export function createElement(type: any) {
   return document.createElement(type)
 }
+
 export function patchProp(
   el: HTMLElement,
   key: string,
@@ -22,14 +26,28 @@ export function patchProp(
     }
   }
 }
+
 export function insert(el: HTMLElement, parent: any) {
   parent.appendChild(el)
+}
+
+export function remove(child: HTMLElement) {
+  const parent = child.parentNode
+  if (parent) {
+    parent.removeChild(child)
+  }
+}
+
+export function setElementText(el: HTMLElement, text: string) {
+  el.textContent = text
 }
 
 const renderer: any = createRenderer({
   createElement,
   patchProp,
   insert,
+  remove,
+  setElementText,
 })
 
 export function createApp(...args: any) {
