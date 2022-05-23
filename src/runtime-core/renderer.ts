@@ -99,7 +99,7 @@ export function createRenderer(options: any) {
     container: any,
     parentComponent: any
   ) {
-    // 旧节点不存在说明是初始化，那就挂载
+    // 旧节点不存在说明是初始化，那就初始化挂载
     if (!n1) {
       mountElement(n2, container, parentComponent)
     } else {
@@ -265,7 +265,7 @@ export function createRenderer(options: any) {
     const nextShapeFlag = n2.shapeFlag
     const newChildren = n2.children
 
-    // 注意：case1 和 case2 两种情况代码可以合并，但是未来可读性合并的代码注释在下面了
+    // 注意：case1 和 case2 两种情况代码可以合并，但是为了可读性好并没有采用，合并的代码注释在下面了
 
     // case1：如果新的节点是一个文本节点，并且老的节点是一个 array
     if (nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
@@ -304,7 +304,7 @@ export function createRenderer(options: any) {
       }
     }
 
-    /* case1 和 case2 合并后的代码 */
+    /* 合并后的代码 */
     // if (nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
     //   if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
     //     unmountChildren(n1.children)

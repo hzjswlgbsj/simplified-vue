@@ -1,6 +1,6 @@
 ## 简介
 
-本仓库仅用于学习 **Vue3** 的设计，以及简单版本的实现，主要参考 《Vuejs 设计与实现》以及 [mini-vue](https://github.com/cuixiaorui/mini-vue)
+本项目的主要目标是实现一个简化版的 **Vue3** 用于学习 vue3 的架构设计，项目只会涉及最核心的流程代码，比如 reactivity 模块、runtime 模块和 compiler 模块，并不是一个可以用于生产环境的项目。主要参考 《Vuejs 设计与实现》以及 [mini-vue](https://github.com/cuixiaorui/mini-vue)
 
 代码中包含大量注释，只要涉及框架设计相关思想在 vue3 中有所涉及我都会详细注释在代码中，并且会一直更新代码中的注释。如果你想研究 vue3 源码又苦于代码复杂度太高不知道从何下手，你可以先看本仓库。
 
