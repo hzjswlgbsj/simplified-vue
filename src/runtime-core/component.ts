@@ -97,6 +97,8 @@ function finishComponentSetup(instance: any) {
 
   if (Component.render) {
     instance.render = Component.render
+  } else {
+    // 生成render函数
   }
 }
 
