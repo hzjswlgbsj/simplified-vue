@@ -263,7 +263,8 @@ export function createRenderer(options: any) {
   ) {
     const prevShapeFlag = n1.shapeFlag
     const nextShapeFlag = n2.shapeFlag
-    const newChildren = n2.children
+    const c1 = n1.children
+    const c2 = n2.children
 
     // 注意：case1 和 case2 两种情况代码可以合并，但是为了可读性好并没有采用，合并的代码注释在下面了
 
@@ -274,7 +275,7 @@ export function createRenderer(options: any) {
         unmountChildren(n1.children)
 
         // 2.在其位置上插入新的文本节点
-        hostSetElementText(container, newChildren)
+        hostSetElementText(container, c2)
       }
     }
 
@@ -282,7 +283,7 @@ export function createRenderer(options: any) {
     if (nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
       if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
         // 直接替换即可
-        hostSetElementText(container, newChildren)
+        hostSetElementText(container, c2)
       }
     }
 
@@ -301,6 +302,7 @@ export function createRenderer(options: any) {
     // 这种情况比较复杂了，需要diff array
     if (nextShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
       if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        patchKeyedChildren(c1, c2, container, parentComponent) // diff
       }
     }
 
@@ -319,6 +321,37 @@ export function createRenderer(options: any) {
     //     mountChildren(n2.children, container, parentComponent)
     //   }
     // }
+  }
+
+  /**
+   * 为两个array的children做diff算法
+   * @param c1 旧节点的children
+   * @param c2 新节点的children
+   */
+  function patchKeyedChildren(
+    c1: any,
+    c2: any,
+    container: any,
+    parentComponent: any
+  ) {
+    let i = 0
+    let e1 = c1.length - 1
+    let e2 = c2.length - 1
+
+    function isSameVNodeType(n1: any, n2: any) {
+      return n1.type === n2.type && n1.key === n2.key
+    }
+
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[i]
+      const n2 = c2[i]
+
+      if (isSameVNodeType(n1, n2)) {
+        patch(n1, n2, container, parentComponent)
+      } else {
+        break
+      }
+    }
   }
 
   /**
