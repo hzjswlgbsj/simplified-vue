@@ -8,6 +8,7 @@ import { h } from '../../lib/mini-vue.esm.js'
 import ArrayToText from './ArrayToText.js'
 import TextToText from './TextToText.js'
 import TextToArray from './TextToArray.js'
+import ArrayToArray from './ArrayToArray.js'
 
 export default {
   name: 'App',
@@ -25,9 +26,9 @@ export default {
         // case2： 老的节点是 text 新的节点是 text
         // h(TextToText),
         // case3： 老的节点是 text 新的节点是 array
-        h(TextToArray),
+        // h(TextToArray),
         // case4： 老的节点是 array 新的节点是 array
-        // h(ArrayToArray),
+        h(ArrayToArray),
       ]
     )
   },

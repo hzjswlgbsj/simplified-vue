@@ -177,6 +177,7 @@ export function createRenderer(options: any) {
    * @param n1 更新前的vnode
    * @param n2 本次要更新的vnode
    * @param container 根容器
+   * @param parentComponent 父组件
    */
   function patchElement(
     n1: VNode,
@@ -254,6 +255,7 @@ export function createRenderer(options: any) {
    * @param n1 旧（上一次）的 vnode
    * @param n2 新（本次）的 vnode
    * @param container 父级容器element节点
+   * @param parentComponent 父组件
    */
   function patchChildren(
     n1: VNode,
@@ -327,6 +329,8 @@ export function createRenderer(options: any) {
    * 为两个array的children做diff算法
    * @param c1 旧节点的children
    * @param c2 新节点的children
+   * @param container 父级容器element节点
+   * @param parentComponent 父组件
    */
   function patchKeyedChildren(
     c1: any,
@@ -342,6 +346,9 @@ export function createRenderer(options: any) {
       return n1.type === n2.type && n1.key === n2.key
     }
 
+    // 左侧对比
+    // 先遍历两个children 知道左侧的不同之处开始的下标
+    // 如果是相同的那就直接patch
     while (i <= e1 && i <= e2) {
       const n1 = c1[i]
       const n2 = c2[i]
@@ -351,7 +358,25 @@ export function createRenderer(options: any) {
       } else {
         break
       }
+
+      i++
     }
+
+    // 右侧对比
+    while (i <= e1 && i <= e2) {
+      const n1 = c1[e1]
+      const n2 = c2[e2]
+
+      if (isSameVNodeType(n1, n2)) {
+        patch(n1, n2, container, parentComponent)
+      } else {
+        break
+      }
+
+      e1--
+      e2--
+    }
+    console.log(1111111111, e1, e2)
   }
 
   /**
