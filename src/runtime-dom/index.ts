@@ -27,8 +27,9 @@ export function patchProp(
   }
 }
 
-export function insert(el: HTMLElement, parent: any) {
-  parent.appendChild(el)
+export function insert(child: HTMLElement, parent: HTMLElement, anchor: any) {
+  // parent.appendChild(child)
+  parent.insertBefore(child, anchor || null)
 }
 
 export function remove(child: HTMLElement) {
