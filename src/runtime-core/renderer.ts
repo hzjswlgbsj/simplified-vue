@@ -338,7 +338,21 @@ export function createRenderer(options: any) {
   }
 
   /**
-   * 为两个array的children做diff算法
+   * 为新旧两个节点的 children 都是 array 的情况下做 diff 算法
+   * 以此来节约重复创建 DOM 所带来的性能消耗，diff的思想是：
+   * 找到新旧节点左右相同的节点，收敛出中间一个变化的区间，在收敛左右的
+   * 时候，如果发现新旧节点的增减节点直接进行增删，最后得到新旧节点两个
+   * 收敛区间，收敛区间再去检测是否有可复用的节点，因为用户可能仅仅是交换的节点位置
+   *
+   * 首先定义三个指针：
+   * let i = 0 // 左侧第一个不同的指针下标
+   * let e1 = c1.length - 1 // 旧节点右侧（从右往左）第一个不同的指针下标
+   * let e2 = c2.length - 1 // 新节点右侧（从右往左）第一个不同的指针下标
+   * 1.从左侧开始向右侧遍历直到找到新旧节点左侧第一个不同的指针下标得到一个i
+   * 2.从最右侧向左侧遍历直到找到新旧节点第一个不同的指针下标，得到e1, e2
+   * 3.新的比旧的长，创建新节点多出来的节点
+   * 4.旧的比新的长，删除老节点多出来的节点
+   *
    * @param c1 旧节点的children
    * @param c2 新节点的children
    * @param container 父级容器element节点
@@ -351,9 +365,9 @@ export function createRenderer(options: any) {
     parentComponent: any,
     parentAnchor: any
   ) {
-    let i = 0
-    let e1 = c1.length - 1
-    let e2 = c2.length - 1
+    let i = 0 // 新旧节点左侧第一个不同的指针下标
+    let e1 = c1.length - 1 // 旧节点右侧（从右往左）第一个不同的指针下标
+    let e2 = c2.length - 1 // 新节点右侧（从右往左）第一个不同的指针下标
 
     function isSameVNodeType(n1: any, n2: any) {
       return n1.type === n2.type && n1.key === n2.key
@@ -410,7 +424,50 @@ export function createRenderer(options: any) {
       }
     }
 
-    console.log(1111111111, e1, e2)
+    // 5.中间对比
+    let s1 = i // 旧节点的开始位置
+    let s2 = i // 新节点的开始位置
+    const toBePatched = e2 - s2 + 1 // 记录新节点的需要更新的总数量
+    let patched = 0 // 当前处理的数量
+    const keyToNewIndexMap = new Map() // 为新节点建立缓存映射表，以提高不必要的遍历查找
+
+    for (let i = s2; i <= e2; i++) {
+      const nextChild = c2[i]
+      keyToNewIndexMap.set(nextChild.key, i)
+    }
+
+    // 遍历老节点查找每一个老节点在新节点中是否存在
+    for (let i = s1; i <= e1; i++) {
+      const prevChild = c1[i]
+      let newIndex
+
+      // 如果处理的数量大于新节点更新的总数量的话，说明老节点又多余的新节点中没有的节点，直接删除
+      if (patched >= toBePatched) {
+        hostRemove(prevChild.el)
+        continue
+      }
+
+      // 如果用户写了key那就从缓存里去查找，否则遍历查找
+      if (prevChild.key !== null) {
+        newIndex = keyToNewIndexMap.get(prevChild.key)
+      } else {
+        for (let j = s2; j < e2; j++) {
+          if (isSameVNodeType(prevChild, c2[j])) {
+            newIndex = j
+            break
+          }
+        }
+      }
+
+      // 如果newIndex不存在那么说明当前节点在新的改动中不存在，那么删除掉它
+      // 如果存在的话继续 patch 对比下层
+      if (newIndex === undefined) {
+        hostRemove(prevChild.el)
+      } else {
+        patch(prevChild, c2[newIndex], container, parentComponent, null)
+        patched++
+      }
+    }
   }
 
   /**
