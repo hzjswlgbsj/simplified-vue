@@ -108,28 +108,105 @@ import { ref, h } from '../../lib/mini-vue.esm.js'
 // a,b,(e,c)f,g
 // d 节点在新节点中是没有的需要被删除
 // c 节点 props 也发生了改变
+// const prevChildren = [
+//   h('p', { key: 'A' }, 'A'),
+//   h('p', { key: 'B' }, 'B'),
+//   h('p', { key: 'C', id: 'c-prev' }, 'C'),
+//   h('p', { key: 'E' }, 'E'),
+//   h('p', { key: 'D' }, 'D'),
+//   h('p', { key: 'F' }, 'F'),
+//   h('p', { key: 'G' }, 'G'),
+// ]
+// const nextChildren = [
+//   h('p', { key: 'A' }, 'A'),
+//   h('p', { key: 'B' }, 'B'),
+//   h('p', { key: 'E' }, 'E'),
+//   h('p', { key: 'C', id: 'c-next' }, 'C'),
+//   h('p', { key: 'F' }, 'F'),
+//   h('p', { key: 'G' }, 'G'),
+// ]
+
+// 5.2.移动（节点存在于新的和老的里面，但是位置变了）
+// a,b,(c,d,e)f,g
+// a,b,(e,c,d)f,g
+// 最长递增子序列：[1,2]
+// const prevChildren = [
+//   h('p', { key: 'A' }, 'A'),
+//   h('p', { key: 'B' }, 'B'),
+//   h('p', { key: 'C' }, 'C'),
+//   h('p', { key: 'D' }, 'D'),
+//   h('p', { key: 'E' }, 'E'),
+//   h('p', { key: 'F' }, 'F'),
+//   h('p', { key: 'G' }, 'G'),
+// ]
+// const nextChildren = [
+//   h('p', { key: 'A' }, 'A'),
+//   h('p', { key: 'B' }, 'B'),
+//   h('p', { key: 'E' }, 'E'),
+//   h('p', { key: 'C' }, 'C'),
+//   h('p', { key: 'D' }, 'D'),
+//   h('p', { key: 'F' }, 'F'),
+//   h('p', { key: 'G' }, 'G'),
+// ]
+
+// 5.3 创建新的（在旧的里面不存在，新的里面存在）
+// a,b,(c,e)f,g
+// a,b,(e,c,d)f,g
+// const prevChildren = [
+//   h('p', { key: 'A' }, 'A'),
+//   h('p', { key: 'B' }, 'B'),
+//   h('p', { key: 'C' }, 'C'),
+//   h('p', { key: 'E' }, 'E'),
+//   h('p', { key: 'F' }, 'F'),
+//   h('p', { key: 'G' }, 'G'),
+// ]
+// const nextChildren = [
+//   h('p', { key: 'A' }, 'A'),
+//   h('p', { key: 'B' }, 'B'),
+//   h('p', { key: 'E' }, 'E'),
+//   h('p', { key: 'C' }, 'C'),
+//   h('p', { key: 'D' }, 'D'),
+//   h('p', { key: 'F' }, 'F'),
+//   h('p', { key: 'G' }, 'G'),
+// ]
+
+// 综合测试用例
+// a,b,(c,d,e,z)f,g
+// a,b,(d,c,y,e)f,g
+// const prevChildren = [
+//   h('p', { key: 'A' }, 'A'),
+//   h('p', { key: 'B' }, 'B'),
+//   h('p', { key: 'C' }, 'C'),
+//   h('p', { key: 'D' }, 'D'),
+//   h('p', { key: 'E' }, 'E'),
+//   h('p', { key: 'Z' }, 'Z'),
+//   h('p', { key: 'F' }, 'F'),
+//   h('p', { key: 'G' }, 'G'),
+// ]
+// const nextChildren = [
+//   h('p', { key: 'A' }, 'A'),
+//   h('p', { key: 'B' }, 'B'),
+//   h('p', { key: 'D' }, 'D'),
+//   h('p', { key: 'C' }, 'C'),
+//   h('p', { key: 'Y' }, 'Y'),
+//   h('p', { key: 'E' }, 'E'),
+//   h('p', { key: 'F' }, 'F'),
+//   h('p', { key: 'G' }, 'G'),
+// ]
+
+// fix bug，C节点应该是被移动，而不是删除后再创建
 const prevChildren = [
   h('p', { key: 'A' }, 'A'),
+  h('p', {}, 'C'),
   h('p', { key: 'B' }, 'B'),
-  h('p', { key: 'C', id: 'c-prev' }, 'C'),
-  h('p', { key: 'E' }, 'E'),
   h('p', { key: 'D' }, 'D'),
-  h('p', { key: 'F' }, 'F'),
-  h('p', { key: 'G' }, 'G'),
 ]
 const nextChildren = [
   h('p', { key: 'A' }, 'A'),
   h('p', { key: 'B' }, 'B'),
-  h('p', { key: 'E' }, 'E'),
-  h('p', { key: 'C', id: 'c-next' }, 'C'),
-  h('p', { key: 'F' }, 'F'),
-  h('p', { key: 'G' }, 'G'),
+  h('p', {}, 'C'),
+  h('p', { key: 'D' }, 'D'),
 ]
-
-// 5.2.创建新的（在旧的里面不存在，新的里面存在）
-
-// 5.3移动（节点存在于新的和老的里面，但是位置变了）
-//   - 使用最长子序列类优化
 
 export default {
   name: 'ArrayToArray',
