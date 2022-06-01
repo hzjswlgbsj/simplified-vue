@@ -24,6 +24,7 @@ import { ShapeFlags } from '../shared/shapeFlags'
 import { createComponentInstance, setupComponent } from './component'
 import { shouldUpdateComponent } from './componentUpdateUtils'
 import { createAppAPI } from './createApp'
+import { queueJobs } from './scheduler'
 import { Fragment, Text, VNode } from './vnode'
 
 const TAG = 'src/runtime-core/renderer'
@@ -173,7 +174,7 @@ export function createRenderer(options: any) {
 
   /**
    * 处理 dom 类型的节点，这里封装了一套接口，dom 的方法我们抽到runtime-dom中，这里是调用外部
-   * 创建自定义渲染器传进来的一套api：hostCreateElement,hostPatchProp, hostInsert
+   * 创建自定义渲染器传进来的一套api：hostCreateElement,hostPatchProp, hostInsert...
    * 注意：初始化流程的时候才会执行全量挂载，如果是更新操作的话会执行patchElement去直接更新需要跟新的节点
    * @param vnode 虚拟节点
    * @param container 根容器
@@ -586,57 +587,75 @@ export function createRenderer(options: any) {
 
     // 视图中依赖的每一个变量都会收集依赖副作用，所以视图中任意变量改变都会重新跑一次本函数
     // effect 函数会返回一个runner 用于手动执行回调fn，在这里保存runner到实例上便于组件更新操作
-    instance.update = effect(() => {
-      // 触发 render -> path 流程现在就有两种情况了：1.初始化渲染 2.更新渲染
-      // 所有我们要区分出哪些是更新流程哪些是初始化，并且只更新需要更新的vnode
+    instance.update = effect(
+      () => {
+        // 触发 render -> path 流程现在就有两种情况了：1.初始化渲染 2.更新渲染
+        // 所有我们要区分出哪些是更新流程哪些是初始化，并且只更新需要更新的vnode
 
-      // 在实例中增加isMounted，如果被挂载过了，说明是更新操作，否则是初始化渲染
-      if (!instance.isMounted) {
-        // 注意之前我们做了instance 的代理（setupStatefulComponent方法中）
-        // 所以这里的 proxy 是 instance 的代理
-        const { proxy } = instance
-        // 调用render获得虚拟节点树，并保存初始化的时候的subTree，便于在更新的时候拿到旧的
-        // subTree 与新的 subTree 做对比
-        const subTree = (instance.subTree = instance.render.call(proxy))
+        // 在实例中增加isMounted，如果被挂载过了，说明是更新操作，否则是初始化渲染
+        if (!instance.isMounted) {
+          // 注意之前我们做了instance 的代理（setupStatefulComponent方法中）
+          // 所以这里的 proxy 是 instance 的代理
+          const { proxy } = instance
+          // 调用render获得虚拟节点树，并保存初始化的时候的subTree，便于在更新的时候拿到旧的
+          // subTree 与新的 subTree 做对比
+          const subTree = (instance.subTree = instance.render.call(proxy))
 
-        // vnode -> patch -> element -> mountElement
-        patch(null, subTree, container, instance, anchor)
-        instance.isMounted = true // 初始化都标识为已挂载
+          // vnode -> patch -> element -> mountElement
+          patch(null, subTree, container, instance, anchor)
+          instance.isMounted = true // 初始化都标识为已挂载
 
-        // 这里所有的element都被mount了
-        initialVNode.el = subTree.el
+          // 这里所有的element都被mount了
+          initialVNode.el = subTree.el
 
-        console.log(
-          TAG,
-          'setupRenderEffect',
-          '执行了初始化渲染',
-          instance,
-          subTree
-        )
-      } else {
-        /* 更新流程 */
-        // next: 即将更新的VNode, vnode: 原来（更新前）的 vnode
-        const { next, vnode } = instance
-        if (next) {
-          next.el = vnode.el // 先将el替换
-          updateComponentPreRender(instance, next) // 更新组件属性
+          console.log(
+            TAG,
+            'setupRenderEffect',
+            '执行了初始化渲染',
+            instance,
+            subTree
+          )
+        } else {
+          /* 更新流程 */
+          // next: 即将更新的VNode, vnode: 原来（更新前）的 vnode
+          const { next, vnode } = instance
+          if (next) {
+            next.el = vnode.el // 先将el替换
+            updateComponentPreRender(instance, next) // 更新组件属性
+          }
+          const { proxy } = instance
+          const subTree = instance.render.call(proxy) // 得到最新的 subTree
+          const preSubTree = instance.subTree // 获取上一次的subTree
+          instance.subTree = subTree // 更新最新的subTree
+          patch(preSubTree, subTree, container, instance, anchor)
+
+          console.log(
+            TAG,
+            'setupRenderEffect',
+            '执行了更新渲染',
+            instance,
+            subTree,
+            preSubTree
+          )
         }
-        const { proxy } = instance
-        const subTree = instance.render.call(proxy) // 得到最新的 subTree
-        const preSubTree = instance.subTree // 获取上一次的subTree
-        instance.subTree = subTree // 更新最新的subTree
-        patch(preSubTree, subTree, container, instance, anchor)
+      },
+      // 因为我们不需要每次更新都立马去更新视图，不需要是一个同步的操作，当数据变化
+      // 很频繁的时候会性能很低下，此时我们需要使用异步的方式去更新，如何实现呢？
+      // 不要忘记我们 effect 是支持 options 的，在实现计算属性就使用到了scheduler
+      // 我们可以同理使用 scheduler 来收集每次更新操作，这些操作看做一个任务，把他们
+      // 用队列有序的收集起来，用异步的方式去顺序执行，还可以在收集任务的时候做去重处理
+      {
+        scheduler() {
+          console.log(
+            TAG,
+            'setupRenderEffect-effect-scheduler: 执行了更新操作的调度器，开始收集试图更新任务'
+          )
 
-        console.log(
-          TAG,
-          'setupRenderEffect',
-          '执行了更新渲染',
-          instance,
-          subTree,
-          preSubTree
-        )
+          // 开始收集更新任务，这里收集的是effect的runner，在数据更新的时候可以手动调用来更新视图
+          queueJobs(instance.update)
+        },
       }
-    })
+    )
   }
 
   function mountChildren(
