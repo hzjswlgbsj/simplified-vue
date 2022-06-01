@@ -17,6 +17,7 @@ export function createComponentInstance(vnode: any, parent: any) {
   const component = {
     vnode,
     type: vnode.type,
+    next: null, // 本次即将被更新的VNode
     setupState: {}, // 保存setup方法中的变量，方法等等
     props: {},
     slots: {},

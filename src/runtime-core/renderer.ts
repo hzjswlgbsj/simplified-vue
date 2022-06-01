@@ -22,6 +22,7 @@ import { effect } from '../reactivity'
 import { EMPTY_OBJ } from '../shared'
 import { ShapeFlags } from '../shared/shapeFlags'
 import { createComponentInstance, setupComponent } from './component'
+import { shouldUpdateComponent } from './componentUpdateUtils'
 import { createAppAPI } from './createApp'
 import { Fragment, Text, VNode } from './vnode'
 
@@ -118,8 +119,12 @@ export function createRenderer(options: any) {
     parentComponent: any,
     anchor: any
   ) {
-    // 挂载组件
-    mountComponent(n2, container, parentComponent, anchor)
+    // 没有老节点代表是初始化渲染
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor) // 挂载组件
+    } else {
+      updateComponent(n1, n2) // 更新组件
+    }
   }
 
   /**
@@ -134,14 +139,36 @@ export function createRenderer(options: any) {
     parentComponent: any,
     anchor: any
   ) {
-    // 首先创建一个组件实例
-    const instance = createComponentInstance(initialVNode, parentComponent)
+    // 首先创建一个组件实例，并将实例保存到VNode上
+    const instance = (initialVNode.component = createComponentInstance(
+      initialVNode,
+      parentComponent
+    ))
 
     // 然后去构建实例中必须的数据
     setupComponent(instance)
 
     // 递归渲染组件实例
     setupRenderEffect(instance, initialVNode, container, anchor)
+  }
+  /**
+   * 更新组件类型的vnode
+   * 更新组件无非就是调用当前组件的render函数生成新的VNode，再进行patch
+   * @param n1 旧的组件节点
+   * @param n2 新的组件节点
+   */
+  function updateComponent(n1: VNode, n2: VNode) {
+    // 从旧组件VNode中拿到老的实例并赋值给新组件VNode的实例以便于下次更新能找到正确的实例
+    const instance = (n2.component = n1.component)
+
+    // 判断是否需要触发更新
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2 // 保存新的VNode到实例
+      instance.update()
+    } else {
+      n2.el = n1.el // 不需要更新的话将新的节点的el直接赋值为旧的
+      instance.vnode = n2 // 更新当前实例上挂的vnode为新的
+    }
   }
 
   /**
@@ -429,11 +456,11 @@ export function createRenderer(options: any) {
 
     // 5.中间对比
     // 5.1 删除旧的（在旧的里面存在，新的里面不存在）
-    let s1 = i // 旧节点的开始位置
-    let s2 = i // 新节点的开始位置
+    let s1 = i // 旧节点的开始位置（这里指的是被收敛的区间的开始的第一个位置下标）
+    let s2 = i // 新节点的开始位置（这里指的是被收敛的区间的开始的第一个位置下标）
     const toBePatched = e2 - s2 + 1 // 记录新节点的需要更新的总数量
     let patched = 0 // 当前处理的数量
-    const keyToNewIndexMap = new Map() // 为新节点建立缓存映射表，以提高不必要的遍历查找
+    const keyToNewIndexMap = new Map() // 为新节点建立缓存映射表，以减少不必要的遍历查找
     const newIndexToOldIndexMap = new Array(toBePatched)
     let moved = false
     let maxNewIndexSoFar = 0
@@ -491,6 +518,7 @@ export function createRenderer(options: any) {
     // 5.2 移动（节点存在于新的和老的里面，但是位置变了）
     // 为了减少移动的次数，我们需要找到最长递增子序列
     // 最长递增子序列：https://leetcode.cn/problems/longest-increasing-subsequence/
+    // 没有最长递增子序列的效果就是收敛区间中的所有节点都被遍历一遍逐个检查是否要移动
     const increasingNewIndexSequence = moved
       ? getSequence(newIndexToOldIndexMap)
       : []
@@ -541,7 +569,7 @@ export function createRenderer(options: any) {
    */
   function setupRenderEffect(
     instance: any,
-    initialVNode: any,
+    initialVNode: VNode,
     container: any,
     anchor: any
   ) {
@@ -557,7 +585,8 @@ export function createRenderer(options: any) {
     // 再次被执行是不是相当于重新跑了一遍新的render->patch流程
 
     // 视图中依赖的每一个变量都会收集依赖副作用，所以视图中任意变量改变都会重新跑一次本函数
-    effect(() => {
+    // effect 函数会返回一个runner 用于手动执行回调fn，在这里保存runner到实例上便于组件更新操作
+    instance.update = effect(() => {
       // 触发 render -> path 流程现在就有两种情况了：1.初始化渲染 2.更新渲染
       // 所有我们要区分出哪些是更新流程哪些是初始化，并且只更新需要更新的vnode
 
@@ -586,6 +615,12 @@ export function createRenderer(options: any) {
         )
       } else {
         /* 更新流程 */
+        // next: 即将更新的VNode, vnode: 原来（更新前）的 vnode
+        const { next, vnode } = instance
+        if (next) {
+          next.el = vnode.el // 先将el替换
+          updateComponentPreRender(instance, next) // 更新组件属性
+        }
         const { proxy } = instance
         const subTree = instance.render.call(proxy) // 得到最新的 subTree
         const preSubTree = instance.subTree // 获取上一次的subTree
@@ -618,6 +653,12 @@ export function createRenderer(options: any) {
   return {
     createApp: createAppAPI(render),
   }
+}
+
+function updateComponentPreRender(instance: any, nextVnode: VNode) {
+  instance.vnode = nextVnode
+  instance.next = null
+  instance.props = nextVnode.props // 更新props，这里是简单处理直接赋值的
 }
 
 // https://en.wikipedia.org/wiki/Longest_increasing_subsequence

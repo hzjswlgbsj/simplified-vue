@@ -5,6 +5,7 @@ export const Text = Symbol('Text')
 export interface VNode {
   type: any
   props: any
+  component: any
   children: any
   key: any
   shapeFlag: any
@@ -16,6 +17,7 @@ export function createVNode(type: any, props?: any, children?: any) {
     type,
     props,
     children: children,
+    component: null, // 保存当前组件的实例
     key: props && props.key,
     shapeFlag: getShapeFlag(type),
     el: null,
