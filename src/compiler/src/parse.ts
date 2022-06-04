@@ -25,6 +25,11 @@ function parseChildren(context: any) {
       node = parseElement(context)
     }
   }
+
+  // 如果 node 没有值说明不是插值或者 element 认为是一个普通字符串
+  if (!node) {
+    node = parseText(context)
+  }
   nodes.push(node)
 
   return nodes
@@ -42,9 +47,10 @@ function parseInterpolation(context: any) {
   )
   advanceBy(context, openDelimiter.length) // 截掉前面两个字符"{{"，并推进
   const rowContentLength = closeIndex - openDelimiter.length // 计算中间内容的长度
-  const rawcontent = context.source.slice(0, rowContentLength) // 拿到真实的内容
+  const rawcontent = context.source.slice(0, rowContentLength)
+  parseTextData(context, rowContentLength) // 拿到真实的内容，并删除处理完的数据并推进
   const content = rawcontent.trim() // 边缘处理
-  advanceBy(context, rowContentLength + closeDelimiter.length) // 更新source，并推进
+  advanceBy(context, closeDelimiter.length) // 在 parseTextData 中已经推进了内容的长度，再次经closeDelimiter删除并推进即可
 
   return {
     type: NodeTypes.INTERPOLATION,
@@ -67,11 +73,10 @@ function parseElement(context: any) {
 
 function parseTag(context: any, type: TagType) {
   // 1.解析元素tag
-  // 2.删除处理完成的代码
-
   const match: any = /^<\/?([a-z]*)/i.exec(context.source)
   const tag = match[1] // 先默认都是能解析出来的正确代码
 
+  // 2.删除处理完成的代码，并推进
   advanceBy(context, match[0].length) // 删除左边并推进
   advanceBy(context, 1) // 删除右尖括号
 
@@ -83,6 +88,31 @@ function parseTag(context: any, type: TagType) {
     type: NodeTypes.ELEMENT,
     tag,
   }
+}
+
+function parseText(context: any) {
+  // 获取内容，并删除和推进
+  const content = parseTextData(context, context.source.length)
+
+  return {
+    type: NodeTypes.TEXT,
+    content,
+  }
+}
+
+/**
+ * 获取文本内容并推进
+ * @param context context
+ * @param length 要删除并推进的长度
+ */
+function parseTextData(context: any, length: number) {
+  // 1.获取内容
+  const content = context.source.slice(0, length)
+
+  // 2.删除解析过的字符并推进
+  advanceBy(context, length)
+
+  return content
 }
 
 function advanceBy(context: any, length: number) {
