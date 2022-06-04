@@ -1,5 +1,10 @@
 import { NodeTypes } from './ast'
 
+export const enum TagType {
+  Start,
+  End,
+}
+
 export function baseParse(content: string) {
   const context = createParseContext(content)
 
@@ -9,9 +14,16 @@ export function baseParse(content: string) {
 function parseChildren(context: any) {
   const nodes = []
   let node
+  const s = context.source
 
-  if (context.source.startsWith('{{')) {
+  if (s.startsWith('{{')) {
+    // 普通的插值类型
     node = parseInterpolation(context)
+  } else if (s[0] === '<') {
+    // element 类型
+    if (/[a-z]/i.test(s[1])) {
+      node = parseElement(context)
+    }
   }
   nodes.push(node)
 
@@ -34,14 +46,42 @@ function parseInterpolation(context: any) {
   const content = rawcontent.trim() // 边缘处理
   advanceBy(context, rowContentLength + closeDelimiter.length) // 更新source，并推进
 
-  console.log(111111111, context.source)
-
   return {
     type: NodeTypes.INTERPOLATION,
     content: {
       type: NodeTypes.SIMPLE_EXPRESSION,
       content,
     },
+  }
+}
+
+function parseElement(context: any) {
+  // 1.解析元素tag
+  // 2.删除处理完成的代码
+
+  const element = parseTag(context, TagType.Start) // 解析出tag，并删除标签左边部分（<div>），并推进
+  parseTag(context, TagType.End) // 删除标签右边部分（</div>），并推进
+
+  return element
+}
+
+function parseTag(context: any, type: TagType) {
+  // 1.解析元素tag
+  // 2.删除处理完成的代码
+
+  const match: any = /^<\/?([a-z]*)/i.exec(context.source)
+  const tag = match[1] // 先默认都是能解析出来的正确代码
+
+  advanceBy(context, match[0].length) // 删除左边并推进
+  advanceBy(context, 1) // 删除右尖括号
+
+  // 如果是结束标签的话不需要返回element
+  if (type === TagType.End) {
+    return
+  }
+  return {
+    type: NodeTypes.ELEMENT,
+    tag,
   }
 }
 
