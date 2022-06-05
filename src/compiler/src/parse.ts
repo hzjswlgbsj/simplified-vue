@@ -1,3 +1,5 @@
+// parse 主要是用于将 template 选项中的模板代码字符串转化为 ast
+
 import { NodeTypes } from './ast'
 
 export const enum TagType {
@@ -207,5 +209,6 @@ function createParseContext(content: string) {
 function createRoot(children: any[]) {
   return {
     children,
+    type: NodeTypes.ROOT,
   }
 }
