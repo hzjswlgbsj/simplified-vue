@@ -5,6 +5,19 @@ export const enum TagType {
   End,
 }
 
+/**
+ * 解析模板代码字符串为 ast
+ * 我画了一下整个解析过程的有限状态机的简单示意图：
+ * https://www.processon.com/view/link/629c5ce81efad4162c7d2420
+ * 有限状态机与正则表达式使用密切，这里实现的比较简单，解析的规则定的也比较
+ * 简单，下面我附上了 vue3 中解析 HTML 的规则，有兴趣的可以深入了解
+ * https://html.spec.whatwg.org/multipage/parsing.html#tag-open-state
+ * https://html.spec.whatwg.org/multipage/parsing.html#markup-declaration-open-state
+ * https://html.spec.whatwg.org/multipage/parsing.html#end-tag-open-state
+ * https://html.spec.whatwg.org/multipage/grouping-content.html#the-pre-element
+ * @param content 初始解析的模板代码字符串
+ * @returns ast
+ */
 export function baseParse(content: string) {
   const context = createParseContext(content)
 
