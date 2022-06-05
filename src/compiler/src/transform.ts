@@ -1,8 +1,9 @@
+// transform 的职责是对 ast 进行增删改查
+
 import { NodeTypes } from './ast'
 import { TO_DISPLAY_STRING } from './runtimeHelpers'
 
-// transform 的职责是对 ast 进行增删改查
-interface TransformContext {
+export interface TransformContext {
   root: any
   nodeTransforms: any[]
   helper: (key: Symbol) => void
@@ -24,15 +25,26 @@ export function transform(root: any, options: any = {}) {
 }
 
 function createRootCodegen(root: any) {
-  root.codegenNode = root.children[0]
+  const child = root.children[0]
+  if (child.type === NodeTypes.ELEMENT) {
+    root.codegenNode = child.codegenNode
+  } else {
+    root.codegenNode = root.children[0]
+  }
 }
 
 function traverseNode(node: any, context: TransformContext) {
   const nodeTransforms = context.nodeTransforms
+  const exitFns = []
 
   for (let i = 0; i < nodeTransforms.length; i++) {
     const transform = nodeTransforms[i]
-    transform(node)
+    const onExit = transform(node, context)
+
+    // 收集退出插件的尾函数
+    if (onExit) {
+      exitFns.push(onExit)
+    }
   }
 
   switch (node.type) {
@@ -45,6 +57,14 @@ function traverseNode(node: any, context: TransformContext) {
       break
     default:
       break
+  }
+
+  // 开始执行收集到的插件尾函数
+  let i = exitFns.length
+
+  // 从后往前执行
+  while (i--) {
+    exitFns[i]()
   }
 }
 
@@ -62,7 +82,7 @@ function createTransformContext(root: any, options: any) {
     root,
     nodeTransforms: options.nodeTransforms || [],
     helpers: new Map(),
-    helper(key: string) {
+    helper(key: any) {
       context.helpers.set(key, 1)
     },
   }
