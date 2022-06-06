@@ -1,3 +1,5 @@
+// reactivity 我画了一个简图可以参考：https://www.processon.com/view/link/629db3295653bb03f2ca9bb4
+
 import { isObject } from '../shared'
 import {
   mutableHandlers,

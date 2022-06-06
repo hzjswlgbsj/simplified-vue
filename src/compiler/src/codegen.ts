@@ -1,6 +1,6 @@
 // -----------------------------codegen 用于将 ast 生成 render 函数-------------------------------------
 // vue 在线编译可以帮助查看编译后render：https://vue-next-template-explorer.netlify.app/
-// 我画了简单的流程：https://www.processon.com/view/link/629c75621e08531a4012d60c
+// 我画了简单的编译渲染整个流程：https://www.processon.com/view/link/629c75621e08531a4012d60c
 
 import { isString } from '../../shared'
 import { NodeTypes } from './ast'

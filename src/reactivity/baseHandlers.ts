@@ -31,7 +31,7 @@ function createGetter(
     }
 
     if (!isReadonly) {
-      // TODO 依赖收集
+      // 依赖收集
       track(target, key)
     }
 

@@ -91,6 +91,7 @@ export function isTracking() {
  * 收集依赖
  * 1.我们需要一个容器（Dep）来收集依赖副作用（activeEffect）
  * 2.因为这个依赖是不重复的所以使用 Set 数据结构
+ * 完整的 deps 保存的数据结构我画了图可以参考：https://www.processon.com/view/link/629db369e0b34d46d73bc3a6
  * @param target 目标对象
  * @param key 目标对象的key值
  */
