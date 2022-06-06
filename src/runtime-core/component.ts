@@ -6,7 +6,7 @@ import { PublicInstanceProxyHandlers } from './componentPublicInstance'
 import { initSlots } from './componentSlots'
 
 let currentInstance: any = null
-
+let compiler: any
 /**
  * 根据vnode来生成一个组件实例
  * @param vnode 虚拟节点
@@ -96,11 +96,12 @@ function handleSetupResult(instance: any, setupResult: any) {
 function finishComponentSetup(instance: any) {
   const Component = instance.type
 
-  if (Component.render) {
-    instance.render = Component.render
-  } else {
-    // 生成render函数
+  // 如果没有render函数则用template生成render函数
+  if (compiler && !Component.render) {
+    Component.render = compiler(Component.template)
   }
+
+  instance.render = Component.render
 }
 
 /**
@@ -112,4 +113,8 @@ export function getCurrentInstance() {
 
 export function setCurrentInstance(instance: any) {
   currentInstance = instance
+}
+
+export function registerRuntimeCompiler(_compiler: any) {
+  compiler = _compiler
 }

@@ -599,7 +599,10 @@ export function createRenderer(options: any) {
           const { proxy } = instance
           // 调用render获得虚拟节点树，并保存初始化的时候的subTree，便于在更新的时候拿到旧的
           // subTree 与新的 subTree 做对比
-          const subTree = (instance.subTree = instance.render.call(proxy))
+          const subTree = (instance.subTree = instance.render.call(
+            proxy,
+            proxy
+          ))
 
           // vnode -> patch -> element -> mountElement
           patch(null, subTree, container, instance, anchor)
@@ -624,7 +627,7 @@ export function createRenderer(options: any) {
             updateComponentPreRender(instance, next) // 更新组件属性
           }
           const { proxy } = instance
-          const subTree = instance.render.call(proxy) // 得到最新的 subTree
+          const subTree = instance.render.call(proxy, proxy) // 得到最新的 subTree
           const preSubTree = instance.subTree // 获取上一次的subTree
           instance.subTree = subTree // 更新最新的subTree
           patch(preSubTree, subTree, container, instance, anchor)
