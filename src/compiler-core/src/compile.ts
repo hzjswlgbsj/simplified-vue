@@ -9,13 +9,20 @@ import { transform } from './transform'
 import { transformElement } from './transforms/transformElement'
 import { transformExpression } from './transforms/transformExpression'
 import { transformText } from './transforms/transformText'
+const TAG = 'src/compiler-core/src/compile'
 
 export function baseCompile(template: string) {
+  console.log(TAG, 'baseCompile->开始执行编译：', template)
+
   const ast = baseParse(template)
+  console.log(TAG, 'baseCompile->编译后获得ast：', ast)
 
   transform(ast, {
     nodeTransforms: [transformExpression, transformElement, transformText],
   })
 
-  return generate(ast)
+  console.log(TAG, 'baseCompile->获得修剪后的ast：', ast)
+  const code = generate(ast)
+  console.log(TAG, 'baseCompile->获得编译后的code：', code)
+  return code
 }

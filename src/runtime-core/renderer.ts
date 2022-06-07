@@ -599,7 +599,6 @@ export function createRenderer(options: any) {
           const { proxy } = instance
           // 调用render获得虚拟节点树，并保存初始化的时候的subTree，便于在更新的时候拿到旧的
           // subTree 与新的 subTree 做对比
-          debugger
           const subTree = (instance.subTree = instance.render.call(
             proxy,
             proxy
