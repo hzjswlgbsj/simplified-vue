@@ -4,7 +4,7 @@ import { emit } from './componentEmit'
 import { initProps } from './componentProps'
 import { PublicInstanceProxyHandlers } from './componentPublicInstance'
 import { initSlots } from './componentSlots'
-
+const TAG = 'runtime-core/component'
 let currentInstance: any = null
 let compiler: any
 /**
@@ -68,6 +68,7 @@ function setupStatefulComponent(instance: any) {
 
     setCurrentInstance(null)
     handleSetupResult(instance, setupResult)
+    console.log(TAG, 'setupStatefulComponent->初始化组件结束', instance)
   }
 }
 

@@ -186,7 +186,7 @@ export function createRenderer(options: any) {
     parentComponent: any,
     anchor: any
   ) {
-    console.log(TAG, 'mountElement', '开始执行DOM元素类型的的初始化挂载', vnode)
+    console.log(TAG, 'mountElement->开始执行DOM元素类型的的初始化挂载', vnode)
     // 注意：这里的vnode是element类型
     const el = (vnode.el = hostCreateElement(vnode.type))
     const { children, props, shapeFlag } = vnode
@@ -599,6 +599,7 @@ export function createRenderer(options: any) {
           const { proxy } = instance
           // 调用render获得虚拟节点树，并保存初始化的时候的subTree，便于在更新的时候拿到旧的
           // subTree 与新的 subTree 做对比
+          debugger
           const subTree = (instance.subTree = instance.render.call(
             proxy,
             proxy
@@ -611,13 +612,7 @@ export function createRenderer(options: any) {
           // 这里所有的element都被mount了
           initialVNode.el = subTree.el
 
-          console.log(
-            TAG,
-            'setupRenderEffect',
-            '执行了初始化渲染',
-            instance,
-            subTree
-          )
+          console.log(TAG, 'setupRenderEffect->执行了初始化渲染', instance)
         } else {
           /* 更新流程 */
           // next: 即将更新的VNode, vnode: 原来（更新前）的 vnode
