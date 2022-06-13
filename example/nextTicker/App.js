@@ -11,9 +11,9 @@ export default {
         count.value = i
       }
 
-      console.log(11111111111, instance.vnode.el.innerText) // 这里的instance中的el是更新之前的
+      console.log('instance中的el是更新之前', instance.vnode.el.innerText) // 这里的instance中的el是更新之前的
       nextTick(() => {
-        console.log(22222222222, instance.vnode.el.innerText) // 这里的instance中的el是更新之后的
+        console.log('instance中的el是更新之后', instance.vnode.el.innerText) // 这里的instance中的el是更新之后的
       })
     }
     return {

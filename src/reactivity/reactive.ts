@@ -1,4 +1,5 @@
-// reactivity 我画了一个简图可以参考：https://www.processon.com/view/link/629db3295653bb03f2ca9bb4
+// reactivity 的主要作用是将一个对象变成「可响应的」，以拦截对象的操作
+// 我画了一个简图可以参考：https://www.processon.com/view/link/629db3295653bb03f2ca9bb4
 
 import { isObject } from '../shared'
 import {
