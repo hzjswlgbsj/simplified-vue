@@ -42,6 +42,15 @@ function trackRefValue(ref: RefImpl) {
   }
 }
 
+/**
+ * 创建一个值类型的响应式数据
+ * Q: ref 为什么要使用 Object.defineproperty 而 reactive 要用 Proxy 来做拦截？
+ * A: 首先要明白的是，JavaScript 的数据类型有两大类，基本类型和引用类型。Proxy 拦截
+ *    的是引用类型，那值类型呢？很自然就想到了将基本类型放到一个对象中去，然后去拦截对象，
+ *    所以使用 ref 定义的响应式数据在访问的时候需要用 .value才能正确获取。
+ * @param value 值
+ * @returns
+ */
 export function ref(value?: any) {
   return new RefImpl(value)
 }
