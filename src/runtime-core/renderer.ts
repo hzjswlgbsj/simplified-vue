@@ -519,6 +519,7 @@ export function createRenderer(options: any) {
     // 5.2 移动（节点存在于新的和老的里面，但是位置变了）
     // 为了减少移动的次数，我们需要找到最长递增子序列
     // 最长递增子序列：https://leetcode.cn/problems/longest-increasing-subsequence/
+    // 最长递增子序列：https://github.com/azl397985856/leetcode/blob/master/selected/LIS.md
     // 没有最长递增子序列的效果就是收敛区间中的所有节点都被遍历一遍逐个检查是否要移动
     const increasingNewIndexSequence = moved
       ? getSequence(newIndexToOldIndexMap)
