@@ -8,6 +8,23 @@
 
 如果想基于本仓库继续深入实现细节，或者想要记录一些自己的思考和想法，可以 fork 一份代码。
 
+一般核心代码都是通过跑单元测试来调试，我正在为核心逻辑增加控制台打印，让开发更便捷。此外有一些场景是使用不同的 example 来完成，你可以看到项目有个 `example` 文件夹，里面按照功能点有相关测试，例如：`example/compiler-base` ，这个文件夹中是用于测试编译的，可以看到 `App.js` 中写了如下代码：
+
+```javascript
+export default {
+  name: 'App',
+  template: '<div>hi，{{message}}</div>',
+
+  setup() {
+    return {
+      message: 'simple vue!',
+    }
+  },
+}
+```
+
+这很明显是测试编译 `template` 选项的，在浏览器中打开当前文件夹中的 `index.html` 你就能看到一个 template 被渲染出来了。
+
 ### 测试
 
 测试依赖 [jest](https://jestjs.io/)，你需要安装，请注意你的 node 版本，根据提示正确配置。执行 `yarn test` 可以跑测试，如果你使用的是 vscode 建议安装 `Jest runner` 而不是 `Jest`，`Jest runner` 可以帮助你在 vscode 中更方便的进行断点调试。
