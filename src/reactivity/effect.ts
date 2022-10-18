@@ -1,3 +1,4 @@
+// 处理副作用，保存副作用以及触发副作用更新
 import { extend } from '../shared'
 
 export type EffectScheduler = (...args: any[]) => any

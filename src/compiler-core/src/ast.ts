@@ -1,3 +1,4 @@
+// 虚拟节点的结构
 import { CREATE_ELEMENT_VNODE } from './runtimeHelpers'
 import { TransformContext } from './transform'
 

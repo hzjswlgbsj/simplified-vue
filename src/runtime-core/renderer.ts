@@ -556,7 +556,6 @@ export function createRenderer(options: any) {
   function unmountChildren(children: any[]) {
     for (let i = 0; i < children.length; i++) {
       const el = children[i].el
-      // remove
       hostRemove(el)
     }
   }
