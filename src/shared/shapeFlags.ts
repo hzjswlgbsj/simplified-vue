@@ -1,6 +1,7 @@
 // ShapeFlags 可以理解为是很多种状态的集合，如果不统一管理的话
 // 代码里面就会有很多 isXXX，用于判断某个程序分支，这里的 ShapeFlags
 // 用于区分 vnode 的个汇总类型和状态
+// 位运算参考：https://github.com/hzjswlgbsj/algorithm-study/blob/main/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95%E5%9F%BA%E7%A1%80/BitManipulation.md
 
 // 用枚举 + 位运算表示
 export const enum ShapeFlags {
